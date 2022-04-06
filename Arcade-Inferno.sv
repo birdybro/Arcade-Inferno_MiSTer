@@ -206,12 +206,15 @@ localparam CONF_STR = {
 	"H0O89,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"-;",
+	"OD,Controls,Run+Aim Single,Dual Analog;",
+	"-;",
 	"OA,Advance,Off,On;",
 	"OB,Auto Up,Off,On;",
 	"OC,High Score Reset,Off,On;",
 	"-;",
 	"R0,Reset;",
-	"J1,Trigger,Start 1P,Start 2P,Coin;",
+	"J1,Trigger,Start,Coin;",
+	"jn,R,Start,Select;",
 	"V,v",`BUILD_DATE 
 };
 
@@ -230,8 +233,12 @@ wire [ 1:0] buttons;
 wire [31:0] status;
 wire [10:0] ps2_key;
 
-wire [15:0] joystick_0, joystick_1;
-wire [15:0] joy = joystick_0 | joystick_1;
+wire [15:0] joy1, joy2;
+wire [15:0] joy = joy1 | joy2;
+
+wire [15:0] joyL1, joyR1, joyL2, joyR2;
+wire [15:0] joyL = joyL1 | joyL2;
+wire [15:0] joyR = joyR1 | joyR2;
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
@@ -254,8 +261,14 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.ioctl_dout(ioctl_dout),
 	.ioctl_index(ioctl_index),
 
-	.joystick_0(joystick_0),
-	.joystick_1(joystick_1)
+	.joystick_0(joy1),
+	.joystick_1(joy2),
+
+	.joystick_l_analog_0(joyL1),
+	.joystick_r_analog_0(joyR1),
+
+	.joystick_l_analog_1(joyL2),
+	.joystick_r_analog_1(joyR2),
 );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
@@ -276,6 +289,44 @@ pll pll
 
 wire reset = RESET | status[0] | buttons[1];
 
+///////////////////////   INPUTS   ////////////////////////////////
+
+wire m_right1  = {status[13] ? joy1[0] : joyL1[0]};
+wire m_left1   = {status[13] ? joy1[1] : joyL1[1]};
+wire m_down1   = {status[13] ? joy1[2] : joyL1[2]};
+wire m_up1     = {status[13] ? joy1[3] : joyL1[3]};
+
+wire m_run1    = {m_up1, m_down1, m_left1, m_right1};
+
+wire m_aimR1   = {status[13] ? joy1[0] : joyR1[0]};
+wire m_aimL1   = {status[13] ? joy1[1] : joyR1[1]};
+wire m_aimD1   = {status[13] ? joy1[2] : joyR1[2]};
+wire m_aimU1   = {status[13] ? joy1[3] : joyR1[3]};
+
+wire m_aim1    = {m_aimU1, m_aimD1, m_aimL1, m_aimR1};
+
+wire m_fire1   = joy1[4];
+wire m_start1  = joy1[5];
+
+wire m_right2  = {status[13] ? joy2[0] : joyL2[0]};
+wire m_left2   = {status[13] ? joy2[1] : joyL2[1]};
+wire m_down2   = {status[13] ? joy2[2] : joyL2[2]};
+wire m_up2     = {status[13] ? joy2[3] : joyL2[3]};
+
+wire m_run2    = {m_up2, m_down2, m_left2, m_right2};
+
+wire m_aimR2   = {status[13] ? joy2[0] : joyR2[0]};
+wire m_aimL2   = {status[13] ? joy2[1] : joyR2[1]};
+wire m_aimD2   = {status[13] ? joy2[2] : joyR2[2]};
+wire m_aimU2   = {status[13] ? joy2[3] : joyR2[3]};
+
+wire m_aim2    = {m_aimU2, m_aimD2, m_aimL2, m_aimR2};
+
+wire m_fire2   = joy2[4];
+wire m_start2  = joy2[5];
+
+wire m_coin    = joy[6];
+
 ///////////////////////   DISPLAY   ///////////////////////////////
 
 wire hblank, vblank;
@@ -288,8 +339,8 @@ assign ri = r*intensity;
 assign gi = g*intensity;
 assign bi = b*intensity;
 
-assign red = ri[7:4];
-assign blue = bi[7:4];
+assign red   = ri[7:4];
+assign blue  = bi[7:4];
 assign green = gi[7:4];
 
 reg ce_pix;
@@ -299,7 +350,7 @@ always @(posedge clk_48) begin
 	ce_pix <= !div;
 end
 
-arcade_video #(256,12,1) arcade_video
+arcade_video #(313,12,1) arcade_video
 (
 	.*,
 	.clk_video(clk_48),
@@ -337,16 +388,16 @@ williams2 williams2
 	.btn_auto_up(status[11]),
 	.btn_high_score_reset(status[12]),
 
- 	.btn_trigger_1	(joy[4]),
- 	.btn_trigger_2	(joy[4]),
- 	.btn_start_1    (joy[5]),
- 	.btn_start_2    (joy[6]),
- 	.btn_coin      	(joy[7]),
+ 	.btn_trigger_1	(m_fire1),
+ 	.btn_trigger_2	(m_fire2),
+ 	.btn_start_1    (m_start1),
+ 	.btn_start_2    (m_start2),
+ 	.btn_coin      	(m_coin),
 
- 	.btn_run_1      (joy[3:0]),
- 	.btn_run_2      (joy[3:0]),
- 	.btn_aim_1      (joy[3:0]), // aim should use separate controls
- 	.btn_aim_2      (joy[3:0]),
+ 	.btn_run_1      (m_run1),
+ 	.btn_run_2      (m_run2),
+ 	.btn_aim_1      (m_aim1), // aim should use separate controls
+ 	.btn_aim_2      (m_aim2),
 
 	.sw_coktail_table(),
 	.seven_seg(),
