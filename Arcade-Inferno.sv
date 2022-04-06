@@ -350,6 +350,10 @@ wire m_aimAU2  = joyR2[3];
 // User decides if they want to combine run+aim or use dual analog joysticks
 // Core checks for status then conditionally assigns inputs to appropriate reg depending on choice
 always_comb begin : joyCondition
+	m_run1 = 0;
+	m_run2 = 0;
+	m_aim1 = 0;
+	m_aim2 = 0;
 	m_run1 = status[13] ? {m_up1,   m_down1, m_left1, m_right1} : {m_upA1,   m_downA1, m_leftA1, m_rightA1};
 	m_run2 = status[14] ? {m_up2,   m_down2, m_left2, m_right2} : {m_upA2,   m_downA2, m_leftA2, m_rightA2};
 	m_aim1 = status[13] ? {m_aimU1, m_aimD1, m_aimL1, m_aimR1 } : {m_aimAU1, m_aimAD1, m_aimAL1, m_aimAR1 };
