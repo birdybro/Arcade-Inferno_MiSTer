@@ -206,7 +206,8 @@ localparam CONF_STR = {
 	"H0O89,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"-;",
-	"OD,Controls,Run+Aim Single,Dual Analog;",
+	"OD,P1 Controls,Run+Aim Single,Dual Analog;",
+	"OE,P2 Controls,Run+Aim Single,Dual Analog;",
 	"-;",
 	"OA,Advance,Off,On;",
 	"OB,Auto Up,Off,On;",
@@ -308,17 +309,17 @@ wire m_aim1    = {m_aimU1, m_aimD1, m_aimL1, m_aimR1};
 wire m_fire1   = joy1[4];
 wire m_start1  = joy1[5];
 
-wire m_right2  = {status[13] ? joy2[0] : joyL2[0]};
-wire m_left2   = {status[13] ? joy2[1] : joyL2[1]};
-wire m_down2   = {status[13] ? joy2[2] : joyL2[2]};
-wire m_up2     = {status[13] ? joy2[3] : joyL2[3]};
+wire m_right2  = {status[14] ? joy2[0] : joyL2[0]};
+wire m_left2   = {status[14] ? joy2[1] : joyL2[1]};
+wire m_down2   = {status[14] ? joy2[2] : joyL2[2]};
+wire m_up2     = {status[14] ? joy2[3] : joyL2[3]};
 
 wire m_run2    = {m_up2, m_down2, m_left2, m_right2};
 
-wire m_aimR2   = {status[13] ? joy2[0] : joyR2[0]};
-wire m_aimL2   = {status[13] ? joy2[1] : joyR2[1]};
-wire m_aimD2   = {status[13] ? joy2[2] : joyR2[2]};
-wire m_aimU2   = {status[13] ? joy2[3] : joyR2[3]};
+wire m_aimR2   = {status[14] ? joy2[0] : joyR2[0]};
+wire m_aimL2   = {status[14] ? joy2[1] : joyR2[1]};
+wire m_aimD2   = {status[14] ? joy2[2] : joyR2[2]};
+wire m_aimU2   = {status[14] ? joy2[3] : joyR2[3]};
 
 wire m_aim2    = {m_aimU2, m_aimD2, m_aimL2, m_aimR2};
 
