@@ -196,8 +196,8 @@ assign LED_USER  = ioctl_download;
 
 wire [1:0] ar = status[9:8];
 
-assign VIDEO_ARX = (!ar) ? 12'd4 : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
+assign VIDEO_ARX = (!ar) ? 12'd282 : (ar - 1'd1);
+assign VIDEO_ARY = (!ar) ? 12'd241 : 12'd0;
 
 `include "build_id.v" 
 localparam CONF_STR = {
