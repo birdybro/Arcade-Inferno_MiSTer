@@ -268,7 +268,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.joystick_r_analog_0(joyR1),
 
 	.joystick_l_analog_1(joyL2),
-	.joystick_r_analog_1(joyR2),
+	.joystick_r_analog_1(joyR2)
 );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
