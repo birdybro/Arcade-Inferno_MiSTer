@@ -60,6 +60,7 @@ port(
 	video_i        : out std_logic_vector(3 downto 0);
 	video_hblank   : out std_logic;
 	video_vblank   : out std_logic;
+	video_blankn   : out std_logic;
 	video_hs       : out std_logic;
 	video_vs       : out std_logic;
  
@@ -254,7 +255,10 @@ signal right_nibble  : std_logic_vector(3 downto 0);
 signal cpu_halt    : std_logic;
 signal cpu_ba      : std_logic;
 signal cpu_bs      : std_logic;
- 
+
+signal gun_bin_code  : std_logic_vector(5 downto 0);
+signal gun_gray_code : std_logic_vector(5 downto 0);
+
 signal sound_select : std_logic_vector(7 downto 0);
 signal sound_trig   : std_logic;
 signal sound_ack    : std_logic;

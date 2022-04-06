@@ -238,8 +238,6 @@ wire [15:0] joy1, joy2;
 wire [15:0] joy = joy1 | joy2;
 
 wire [15:0] joyL1, joyR1, joyL2, joyR2;
-wire [15:0] joyL = joyL1 | joyL2;
-wire [15:0] joyR = joyR1 | joyR2;
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
@@ -292,41 +290,81 @@ wire reset = RESET | status[0] | buttons[1];
 
 ///////////////////////   INPUTS   ////////////////////////////////
 
-wire m_right1  = {status[13] ? joy1[0] : joyL1[0]};
-wire m_left1   = {status[13] ? joy1[1] : joyL1[1]};
-wire m_down1   = {status[13] ? joy1[2] : joyL1[2]};
-wire m_up1     = {status[13] ? joy1[3] : joyL1[3]};
+// Inputs for this core are a little weird, conditional assignments required to suit
+// the different kinds of playstyles and controllers.
 
-wire m_run1    = {m_up1, m_down1, m_left1, m_right1};
+// Final input wire for willams2 ports
+reg [3:0] m_run1;
+reg [3:0] m_run2;
+reg [3:0] m_aim1;
+reg [3:0] m_aim2;
 
-wire m_aimR1   = {status[13] ? joy1[0] : joyR1[0]};
-wire m_aimL1   = {status[13] ? joy1[1] : joyR1[1]};
-wire m_aimD1   = {status[13] ? joy1[2] : joyR1[2]};
-wire m_aimU1   = {status[13] ? joy1[3] : joyR1[3]};
+// Player 1 Directional Inputs
+wire m_right1  = joy1[0];
+wire m_left1   = joy1[1];
+wire m_down1   = joy1[2];
+wire m_up1     = joy1[3];
 
-wire m_aim1    = {m_aimU1, m_aimD1, m_aimL1, m_aimR1};
+// run with dual analog p1 status[13]
+wire m_rightA1 = joyL1[0];
+wire m_leftA1  = joyL1[1];
+wire m_downA1  = joyL1[2];
+wire m_upA1    = joyL1[3];
 
-wire m_fire1   = joy1[4];
-wire m_start1  = joy1[5];
+// combined aim+run p1 ~status[13]
+wire m_aimR1   = m_right1;
+wire m_aimL1   = m_left1;
+wire m_aimD1   = m_down1;
+wire m_aimU1   = m_up1;
 
-wire m_right2  = {status[14] ? joy2[0] : joyL2[0]};
-wire m_left2   = {status[14] ? joy2[1] : joyL2[1]};
-wire m_down2   = {status[14] ? joy2[2] : joyL2[2]};
-wire m_up2     = {status[14] ? joy2[3] : joyL2[3]};
+// aim with dual analog p1 status[13]
+wire m_aimAR1  = joyR1[0];
+wire m_aimAL1  = joyR1[1];
+wire m_aimAD1  = joyR1[2];
+wire m_aimAU1  = joyR1[3];
 
-wire m_run2    = {m_up2, m_down2, m_left2, m_right2};
+// Player 2 Directional Inputs
+wire m_right2  = joy2[0];
+wire m_left2   = joy2[1];
+wire m_down2   = joy2[2];
+wire m_up2     = joy2[3];
 
-wire m_aimR2   = {status[14] ? joy2[0] : joyR2[0]};
-wire m_aimL2   = {status[14] ? joy2[1] : joyR2[1]};
-wire m_aimD2   = {status[14] ? joy2[2] : joyR2[2]};
-wire m_aimU2   = {status[14] ? joy2[3] : joyR2[3]};
+// run with dual analog p2 [status][14]
+wire m_rightA2 = joyL2[0];
+wire m_leftA2  = joyL2[1];
+wire m_downA2  = joyL2[2];
+wire m_upA2    = joyL2[3];
 
-wire m_aim2    = {m_aimU2, m_aimD2, m_aimL2, m_aimR2};
+// combined aim+run p2 ~status[14]
+wire m_aimR2   = m_right2;
+wire m_aimL2   = m_left2;
+wire m_aimD2   = m_down2;
+wire m_aimU2   = m_up2;
 
-wire m_fire2   = joy2[4];
-wire m_start2  = joy2[5];
+// aim with dual analog p2 status[14]
+wire m_aimAR2  = joyR2[0];
+wire m_aimAL2  = joyR2[1];
+wire m_aimAD2  = joyR2[2];
+wire m_aimAU2  = joyR2[3];
 
-wire m_coin    = joy[6];
+// User decides if they want to combine run+aim or use dual analog joysticks
+// Core checks for status then conditionally assigns inputs to appropriate reg depending on choice
+always_comb begin : joyCondition
+	m_run1 = status[13] ? {m_up1,   m_down1, m_left1, m_right1} : {m_upA1,   m_downA1, m_leftA1, m_rightA1};
+	m_run2 = status[14] ? {m_up2,   m_down2, m_left2, m_right2} : {m_upA2,   m_downA2, m_leftA2, m_rightA2};
+	m_aim1 = status[13] ? {m_aimU1, m_aimD1, m_aimL1, m_aimR1 } : {m_aimAU1, m_aimAD1, m_aimAL1, m_aimAR1 };
+	m_aim2 = status[14] ? {m_aimU2, m_aimD2, m_aimL2, m_aimR2 } : {m_aimAU2, m_aimAD2, m_aimAL2, m_aimAR2 };
+end
+
+// Regular player buttons
+wire m_fire1  = joy1[4];
+wire m_start1 = joy1[5];
+
+wire m_fire2  = joy2[4];
+wire m_start2 = joy2[5];
+
+// both players can press "coin"
+wire m_coin   = joy[6];
 
 ///////////////////////   DISPLAY   ///////////////////////////////
 
