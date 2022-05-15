@@ -179,7 +179,6 @@ assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
 assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;  
 
-//assign VGA_SL = 0;
 assign VGA_F1 = 0;
 assign VGA_SCALER = 0;
 assign HDMI_FREEZE = 0;
@@ -190,14 +189,14 @@ assign LED_DISK = 0;
 assign LED_POWER = 0;
 assign BUTTONS = 0;
 
-//////////////////////////////////////////////////////////////////
+// MiSTer Framework
 
 assign LED_USER  = ioctl_download;
 
 wire [1:0] ar = status[9:8];
 
-assign VIDEO_ARX = (!ar) ? 12'd4 : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
+assign VIDEO_ARX = (!ar) ? 12'd909 : (ar - 1'd1);
+assign VIDEO_ARY = (!ar) ? 12'd763 : 12'd0;
 
 `include "build_id.v" 
 localparam CONF_STR = {
@@ -230,8 +229,8 @@ wire [ 1:0] buttons;
 wire [31:0] status;
 wire [10:0] ps2_key;
 
-wire [15:0] joystick_0, joystick_1;
-wire [15:0] joy = joystick_0 | joystick_1;
+wire [15:0] joy1, joy2;
+wire [15:0] joy = joy1 | joy2;
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
@@ -254,11 +253,11 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.ioctl_dout(ioctl_dout),
 	.ioctl_index(ioctl_index),
 
-	.joystick_0(joystick_0),
-	.joystick_1(joystick_1)
+	.joystick_0(joy1),
+	.joystick_1(joy2)
 );
 
-///////////////////////   CLOCKS   ///////////////////////////////
+// Clocks
 
 wire clk_sys;
 wire pll_locked;
@@ -276,7 +275,21 @@ pll pll
 
 wire reset = RESET | status[0] | buttons[1];
 
-///////////////////////   DISPLAY   ///////////////////////////////
+// Controls
+
+wire m_run1     = joy1[3:0];
+wire m_aim1     = joy1[3:0];
+wire m_trigger1 = joy1[4];
+wire m_start1   = joy1[5];
+
+wire m_run2     = joy2[3:0];
+wire m_aim2     = joy2[3:0];
+wire m_trigger2 = joy2[4];
+wire m_start2   = joy2[5];
+
+wire m_coin     = joy[6];
+
+// Video
 
 wire hblank, vblank;
 wire hs, vs;
@@ -299,7 +312,7 @@ always @(posedge clk_48) begin
 	ce_pix <= !div;
 end
 
-arcade_video #(256,12,1) arcade_video
+arcade_video #(313,12,1) arcade_video
 (
 	.*,
 	.clk_video(clk_48),
@@ -312,10 +325,14 @@ arcade_video #(256,12,1) arcade_video
 	.fx(status[5:3])
 );
 
+// Audio
+
 wire [7:0] audio;
 assign AUDIO_L = {audio, 6'd0};
 assign AUDIO_R = AUDIO_L;
 assign AUDIO_S = 0;
+
+// Core
 
 williams2 williams2
 (
@@ -337,16 +354,16 @@ williams2 williams2
 	.btn_auto_up(status[11]),
 	.btn_high_score_reset(status[12]),
 
- 	.btn_trigger_1	(joy[4]),
- 	.btn_trigger_2	(joy[4]),
- 	.btn_start_1    (joy[5]),
- 	.btn_start_2    (joy[6]),
- 	.btn_coin      	(joy[7]),
+ 	.btn_trigger_1	(m_trigger1),
+ 	.btn_trigger_2	(m_trigger2),
+ 	.btn_start_1    (m_start1),
+ 	.btn_start_2    (m_start2),
+ 	.btn_coin      	(m_coin),
 
- 	.btn_run_1      (joy[3:0]),
- 	.btn_run_2      (joy[3:0]),
- 	.btn_aim_1      (joy[3:0]), // aim should use separate controls
- 	.btn_aim_2      (joy[3:0]),
+ 	.btn_run_1      (m_run1),
+ 	.btn_run_2      (m_run2),
+ 	.btn_aim_1      (m_aim1),
+ 	.btn_aim_2      (m_aim2),
 
 	.sw_coktail_table(),
 	.seven_seg(),
