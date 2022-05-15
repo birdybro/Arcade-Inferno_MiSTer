@@ -277,13 +277,13 @@ wire reset = RESET | status[0] | buttons[1];
 
 // Controls
 
-wire m_run1     = joy1[3:0];
-wire m_aim1     = joy1[3:0];
+wire [3:0] m_run1, m_aim1 = joy1[3:0];
+
 wire m_trigger1 = joy1[4];
 wire m_start1   = joy1[5];
 
-wire m_run2     = joy2[3:0];
-wire m_aim2     = joy2[3:0];
+wire [3:0] m_run2, m_aim2 = joy2[3:0];
+
 wire m_trigger2 = joy2[4];
 wire m_start2   = joy2[5];
 
